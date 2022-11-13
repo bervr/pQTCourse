@@ -9,3 +9,16 @@ from tabulate import tabulate
 from task1_2 import host_range_ping
 
 
+def reformat_dict(dict):
+    result_dict = {'available': [], 'unavailable': []}
+    for k, v in dict.items():
+        if 'NOT' in v:
+            result_dict['unavailable'].append(k)
+        else:
+            result_dict['available'].append(k)
+    return result_dict
+
+
+if __name__ == "__main__":
+    res = reformat_dict(host_range_ping())
+    print(tabulate(res, headers='keys', tablefmt="pipe"))
