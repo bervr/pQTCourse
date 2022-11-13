@@ -6,6 +6,9 @@
 from subprocess import Popen, PIPE
 from ipaddress import ip_address
 import platform
+import socket
+
+import chardet
 
 
 def get_params():
@@ -13,31 +16,48 @@ def get_params():
     return param
 
 
-def get_ip(str):
-    # пусть будет так, потому что условие не понятное  -
-    # список из ip или hostnames, а преобразовывать надо с помощью ipaddress
-    # с полным пониманием того что эта функция не нужна:
+def get_ip(str_ip):
+    '''пусть будет так, потому что условие не понятное  - список из ip или hostnames, а преобразовывать надо с помощью
+     ipaddress и с полным пониманием того что эта функция тут не нужна, особенно с учетом что пинг хочет на вход
+     строку, а не обьект ipv4: '''
     try:
-        host_ip = ip_address(str)[0]
-    except Exception as err:
-        # print(f'Exception {err}')
-        host_ip = str
+        host_ip = ip_address(str_ip)  # пробуем  получить ip из входных данных
+    except Exception:
+        try:  # если не удается значит это не ip, пробуем разрешить hostname
+            host_ip = ip_address(socket.gethostbyname(str_ip))
+        except socket.error:
+            host_ip = str_ip  # если не удается, то возвращаем как есть строкой, пусть пинг разбирается
     return host_ip
 
 
-def ping_one(host):
-    args = ['ping', get_params(), '2', get_ip(host)]
+def ping_one(params, ip_addr):
+    args = ['ping', params, '1', str(ip_addr)]
     reply = Popen(args, stdout=PIPE, stderr=PIPE)
     code = reply.wait()
     if code == 0:
-        return True, print(f'Address {host} is available')
+        return True
     else:
-        return False, print(f'Address {host} is NOT available')
+        return False
+    # process = Popen(f'python ping.py {ip_addr}', shell=True, stdout=PIPE, stderr=PIPE)
+    #
+    # result = process.communicate()
+    # print(process)
+    #
+    # if process.returncode == 0:
+    #     print('result:', result[0])
+    #     return True
+    # else:
+    #     print('result:', result[0])
+    #     return False
+    # что-то не ускорилось...
 
 
 def host_ping(host_list):
+    params = get_params()
     for host in host_list:
-        ping_one(host)
+        ip_addr = get_ip(host)
+        print(f'Address {host} is available') if ping_one(params, ip_addr) else print(
+            f'Address {host} is NOT available')
 
 
 if __name__ == "__main__":

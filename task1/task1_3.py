@@ -5,5 +5,7 @@
 # 10.0.0.1          # 10.0.0.3
 # 10.0.0.2          # 10.0.0.4
 #
+from tabulate import tabulate
+from task1_2 import host_range_ping
 
 
